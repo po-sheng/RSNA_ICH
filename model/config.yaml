@@ -2,14 +2,13 @@ num_epochs: 100
 batch_size: 32
 
 # vgg16(19)(_bn), resnet50(101, 152), Densenet121(169, 161), inception_v3 
-# "NULL" for user defined network 
 model: resnet50
 
 train:
     data: ../dataset/split/train/*.dcm
     phrase: train
     use_finetune: False
-    model_path: best_resnet101.h5
+    model_path: checkpoint/best_resnet50.h5
     class:  &CLASS
         epidural: 0
         healthy: 1
@@ -27,7 +26,7 @@ test:
     data: ../dataset/test/*.dcm
     phrase: test
     use_finetune: False
-    model_path: best_resnet101.h5
+    model_path: checkpoint/best_resnet50.h5
     class: *CLASS
 
 optimizer:

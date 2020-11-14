@@ -31,6 +31,9 @@ def readImg(path):
     return img
 
 def preProcess(img):
+    # Prevent overflow
+    img = img.astype(np.float)
+
     # Normalize to 0~255 and resize nparray to H*W*C  
     maxNum = np.max(img)
     minNum = np.min(img)

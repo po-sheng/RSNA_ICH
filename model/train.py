@@ -10,9 +10,9 @@ from functools import partial
 from joblib import cpu_count
 from torch.utils.data import DataLoader
 
+from metric import lineCat, draw, saveInfo 
 from model import get_model, mod_model
 from dataset import brainDataset
-# from network import Net
 
 class Trainer:
     def __init__(self, config, train: DataLoader, val: DataLoader):
@@ -20,24 +20,42 @@ class Trainer:
         self.trainLoader = train
         self.valLoader = val
         self.best_score = 0
+        self.trainL = []
+        self.trainA = []
+        self.valL = []
+        self.valA = []
 
         self._init_params()
 
-    def train(self):    
+    def train(self):   
         for epoch in range(config["num_epochs"]):
+            # Training
             self._run_epoch(epoch)
+
+            # Validation
             self._eval(epoch)
+            
+            # Scheduler
             self.scheduler.step
 
-            torch.save(self.net.state_dict(), "last_{}.h5".format(self.config["model"])) 
+            torch.save(self.net.state_dict(), "checkpoint/last_{}.h5".format(self.config["model"]))  
 
+        # Metric visualization
+        # Loss
+        lines, bests = lineCat(self.trainL, self.valL)
+        draw(lines, bests, self.config, "result/", "Loss", ["train", "val"])
+
+        # Accuracy
+        lines, bests = lineCat(self.trainA, self.valA)
+        draw(lines, bests, self.config, "result/", "Accuracy", ["train", "val"])
+    
     def _run_epoch(self, epoch):
         self.net.train()
 
         for param_group in self.optimizer.param_groups:
             lr = param_group["lr"]
 
-        tq = tqdm.tqdm(self.trainLoader, total=len(self.trainLoader)//self.config["batch_size"])
+        tq = tqdm.tqdm(self.trainLoader, total=len(list(self.trainLoader)))
         tq.set_description("Epoch: {}, lr: {}".format(epoch, lr))
         
         i = 0
@@ -66,15 +84,19 @@ class Trainer:
             correct += (predicted == targets).sum().item()
 
             # print statistics
-            tq.set_postfix(loss="Accuracy="+str(100*correct/total)+"%; "+"Loss="+str(running_loss/i))
+            tq.set_postfix(loss="{:.4f}".format(running_loss/i)+"; Accuracy="+"{:.4f}".format(100*correct/total)+"%")
 
         # close tqdm
         tq.close()
 
+        # Metric
+        self.trainL.append(running_loss/i)
+        self.trainA.append(100*correct/total)
+
     def _eval(self, epoch):
         self.net.eval()
 
-        tq = tqdm.tqdm(self.trainLoader, total=len(self.trainLoader)//self.config["batch_size"])
+        tq = tqdm.tqdm(self.trainLoader, total=len(list(self.trainLoader)))
         tq.set_description("Validation")
         
         i = 0
@@ -101,15 +123,22 @@ class Trainer:
             correct += (predicted == targets).sum().item()
 
         # print statistics
-        print("Accuracy="+str(100*correct/total)+"%; Loss="+str(running_loss/i))
+        print("Loss="+str(running_loss/i)+"; Accuracy="+str(100*correct/total)+"%")
         
         # if current best model
         if (100*correct/total) > self.best_score:
             self.best_score = (100*correct/total)
-            torch.save(self.net.state_dict(), "best_{}.h5".format(self.config["model"]))
+            saveInfo(self.config, self.best_score, running_loss/i, epoch, "result/")
+            torch.save(self.net.state_dict(), "checkpoint/best_{}.h5".format(self.config["model"]))
 
         # close tqdm
         tq.close()
+        
+        # Metric
+        self.valL.append(running_loss/i)
+        self.valA.append(100*correct/total)
+
+        return running_loss/i, 100*correct/total
         
     def _get_optimizer(self, optimizer, params):
         name = optimizer["name"]
@@ -165,5 +194,5 @@ if __name__ == "__main__":
     trainer.train()
 
     # Metrics
-
+    
 

@@ -28,11 +28,11 @@ def mp(path_idx_save):
 
         # Get image matrix
         img = ds.pixel_array                    # ndarray
-    
+        img = img.astype(np.float)
+        
         minNum = img.min()
         maxNum = img.max()
-
-        img = (((img - minNum) / (maxNum - minNum)) * 255)
+        img = (255 * (img - minNum) / (maxNum - minNum))
 
         label = path.split("/")[-2]
 #         cv2.imwrite(savePath+label+"/"+label+"_"+str(idx)+".png", img)
