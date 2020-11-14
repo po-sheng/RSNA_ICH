@@ -1,0 +1,41 @@
+num_epochs: 100
+batch_size: 32
+
+# vgg16(19)(_bn), resnet50(101, 152), Densenet121(169, 161), inception_v3 
+# "NULL" for user defined network 
+model: resnet50
+
+train:
+    data: ../dataset/split/train/*.dcm
+    phrase: train
+    use_finetune: False
+    model_path: best_resnet101.h5
+    class:  &CLASS
+        epidural: 0
+        healthy: 1
+        intraparenchymal: 2
+        intraventricular: 3
+        subarachnoid: 4
+        subdural: 5
+
+val:
+    data: ../dataset/split/val/*.dcm
+    phrase: val
+    class:  *CLASS
+
+test:
+    data: ../dataset/test/*.dcm
+    phrase: test
+    use_finetune: False
+    model_path: best_resnet101.h5
+    class: *CLASS
+
+optimizer:
+    # SGD, Adam, Adadelta
+    name: Adam
+    lr: 0.00001
+
+scheduler:
+    step_size: 20
+    gamma: 0.1          # become 0.9 times
+

@@ -36,7 +36,7 @@ def mp(path_idx_save):
 
         label = path.split("/")[-2]
 #         cv2.imwrite(savePath+label+"/"+label+"_"+str(idx)+".png", img)
-
+        
         # epidural, subdural, subarachnoid, intraventricular, healthy, intraparenchymal
         if idx == 259:                  
             histogram.build(img, label+"_"+str(idx))
