@@ -1,4 +1,7 @@
+import os
+import csv
 import numpy as np
+import matplotlib
 import matplotlib.pyplot as plt
 
 def lineCat(*args):
@@ -16,11 +19,12 @@ def draw(lines, bests, config, savePath, y_label, lineLabel):
     assert len(lines) == len(lineLabel), "Missmatch length!" 
 
     color = ["red", "blue", "yellow", "green", "purple", "black"]
+    matplotlib.use("AGG") 
     plt.figure()
 
     # Draw lines
     for lineIdx in range(len(lines)):
-        plt.plot(lines[lineIdx], c=color[lineIdx], label=lineLabel[lineNum])
+        plt.plot(lines[lineIdx], c=color[lineIdx], label=lineLabel[lineIdx])
 
     plt.legend()
 
@@ -44,10 +48,29 @@ def saveInfo(config, acc, loss, epoch, savePath):
         f.write("\tLoss: {}\n".format(str(loss)))
         f.write("\tEpoch: {}\n".format(str(epoch)))
 
+def writePred(names, preds, savePath):
+    assert len(names) == len(preds), "Mismatch length!"
+
+    with open(savePath+"result.csv", "w", newline='') as csvfile: 
+        writer = csv.writer(csvfile)
+
+        for name, pred in sorted(zip(names, preds), key = lambda x: x[0]):
+            writer.writerow([name, pred])
+
+def readBest(config, savePath):
+    if not os.path.exists(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt"):
+        return 0
+    with open(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt", "r") as f:
+        for line in f.readlines():
+            if line.startswith("\tAccuracy"):
+                return line.split()[1]
+
 if __name__ == "__main__":
     lines = [[1, 2, 3, 4, 5], [1, 4, 9, 16, 25]]
     bests = [[1, 2], [3, 16]]
    
-    a, b = lineCat([1, 2, 3, 4, 5], [1, 4, 9, 16, 25])
-    print(a, b)
+#     a, b = lineCat([1, 2, 3, 4, 5], [1, 4, 9, 16, 25])
+#     print(a, b)
+
+    writePred(["a", "b", "c"], [1, 2, 3], "./")
 

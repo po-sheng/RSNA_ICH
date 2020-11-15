@@ -10,8 +10,8 @@ from functools import partial
 from joblib import cpu_count
 from torch.utils.data import DataLoader
 
-from metric import lineCat, draw, saveInfo 
-from model import get_model, mod_model
+from metric import lineCat, draw, saveInfo, readBest
+from model import get_model, mod_model 
 from dataset import brainDataset
 
 class Trainer:
@@ -19,7 +19,7 @@ class Trainer:
         self.config = config
         self.trainLoader = train
         self.valLoader = val
-        self.best_score = 0
+        self.best_score = readBest(self.config, "result/")
         self.trainL = []
         self.trainA = []
         self.valL = []
@@ -36,7 +36,7 @@ class Trainer:
             self._eval(epoch)
             
             # Scheduler
-            self.scheduler.step
+            self.scheduler.step()
 
             torch.save(self.net.state_dict(), "checkpoint/last_{}.h5".format(self.config["model"]))  
 
@@ -96,7 +96,7 @@ class Trainer:
     def _eval(self, epoch):
         self.net.eval()
 
-        tq = tqdm.tqdm(self.trainLoader, total=len(list(self.trainLoader)))
+        tq = tqdm.tqdm(self.valLoader, total=len(list(self.valLoader)))
         tq.set_description("Validation")
         
         i = 0
@@ -123,7 +123,7 @@ class Trainer:
             correct += (predicted == targets).sum().item()
 
         # print statistics
-        print("Loss="+str(running_loss/i)+"; Accuracy="+str(100*correct/total)+"%")
+        print("Loss="+"{:.4f}".format(running_loss/i)+"; Accuracy="+"{:.4f}".format(100*correct/total)+"%")
         
         # if current best model
         if (100*correct/total) > self.best_score:
@@ -174,7 +174,10 @@ class Trainer:
 if __name__ == "__main__":
 
     # Set GPU
-    os.environ["CUDA_VISIBLE_DEVICES"] = "9"    
+    os.environ["CUDA_VISIBLE_DEVICES"] = "5, 6"    
+
+    torch.multiprocessing.set_sharing_strategy("file_system")
+    torch.cuda.empty_cache()
 
     # Read config
     with open('config.yaml', 'r') as f:
@@ -192,7 +195,4 @@ if __name__ == "__main__":
     # Train
     trainer = Trainer(config, train=train, val=val)
     trainer.train()
-
-    # Metrics
-    
 

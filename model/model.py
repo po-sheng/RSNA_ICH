@@ -4,7 +4,11 @@ import torchvision.models as models
 
 def get_model(modelName):
     if modelName.startswith("resnet"):
-        if modelName.endswith("50"):
+        if modelName.endswith("19"):
+            net = models.resnet19(pretrained=True, progress=True)
+        elif modelName.endswith("34"):
+            net = models.resnet34(pretrained=True, progress=True)
+        elif modelName.endswith("50"):
             net = models.resnet50(pretrained=True, progress=True)
         elif modelName.endswith("101"):
             net = models.resnet101(pretrained=True, progress=True)
