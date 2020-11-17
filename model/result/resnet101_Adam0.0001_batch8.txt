@@ -1,0 +1,4 @@
+Best performance on validation set:
+	Accuracy: 70.5
+	Loss: 0.8931157283981641
+	Epoch: 30

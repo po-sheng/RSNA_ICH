@@ -3,6 +3,7 @@ import glob
 import torch
 import pydicom
 import numpy as np
+from scipy.ndimage import gaussian_filter
 from PIL import ImageStat as pilStat
 import torchvision.transforms as trns
 from torch.utils.data.dataset import Dataset
@@ -87,13 +88,15 @@ def readImg_refine(Path):
 
 def preProcess(img):
     # Prevent overflow
-#     img = img.astype(np.float)
+    img = img.astype(np.float)
 
     # Normalize to 0~255 and resize nparray to H*W*C  
-#     maxNum = np.max(img)
-#     minNum = np.min(img)
+    maxNum = np.max(img)
+    minNum = np.min(img)
 
-#     img = ((img - minNum) / (maxNum - minNum) * 255).astype(np.ubyte)
+    img = ((img - minNum) / (maxNum - minNum) * 255).astype(np.ubyte)
+#     gaussian_filter(img, sigma=1)
+
     img.reshape((img.shape[0], img.shape[1], 1))
 
     return img
@@ -102,15 +105,19 @@ def transform(img, phrase):
     if phrase == "train":
         transform = trns.Compose([
             trns.ToPILImage(),
-#             trns.Resize((224, 224)),
             trns.Resize((512, 512)),
+            trns.CenterCrop(400),
+#             trns.Resize((224, 224)),
+            trns.ColorJitter(0.5, 0.5, 0.5),
+            trns.RandomRotation(30),
             trns.RandomHorizontalFlip()
         ])
     else:
         transform = trns.Compose([
             trns.ToPILImage(),
+            trns.Resize((512, 512)),
+            trns.CenterCrop(400)
 #             trns.Resize((224, 224))
-            trns.Resize((512, 512))
         ])
 
     return transform(img)
@@ -141,7 +148,7 @@ class brainDataset(Dataset):
         return len(self.imgs)
 
     def __getitem__(self, idx):
-        img = readImg_refine(self.imgs[idx])               # Output ndarray
+        img = readImg(self.imgs[idx])               # Output ndarray
         
         if self.phrase == "test":
             lbl = self.imgs[idx]

@@ -42,8 +42,8 @@ class Predictor:
         return self.names, self.preds
 
     def _init_params(self):
-        self.net = get_model(config["model"])
-        self.net = mod_model(config["test"]["class"], self.net)
+        self.net = get_model(self.config["model"])
+        self.net = mod_model(self.config["test"]["class"], self.config["train_last"], self.config["model"], self.net)
         self.net.load_state_dict(torch.load(config["test"]["model_path"]))
         self.net.cuda()
 

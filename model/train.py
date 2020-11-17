@@ -5,6 +5,7 @@ import torch
 import yaml
 import tqdm
 import torch.nn as nn
+from statistics import mean
 import torch.optim as optim
 from functools import partial
 from joblib import cpu_count
@@ -39,6 +40,9 @@ class Trainer:
             self.scheduler.step()
 
             torch.save(self.net.state_dict(), "checkpoint/last_{}.h5".format(self.config["model"]))  
+            
+            if len(self.trainL) > 10 and mean(self.trainL[-10:]) - self.trainL[-1] < 0.001:
+                break;
 
         # Metric visualization
         # Loss
@@ -145,7 +149,7 @@ class Trainer:
         lr = optimizer["lr"]
 
         if name == "SGD":
-            opt = optim.SGD(params, lr=lr)
+            opt = optim.SGD(params, momentum=0.9, lr=lr)
         elif name == "Adam":
             opt = optim.Adam(params, lr=lr)
         elif name == "Adadelta":
@@ -162,7 +166,7 @@ class Trainer:
 
     def _init_params(self):
         self.net = get_model(self.config["model"])
-        self.net = mod_model(config["train"]["class"], self.net)
+        self.net = mod_model(self.config["train"]["class"], self.config["train_last"], self.config["model"], self.net)
         if self.config["train"]["use_finetune"]:
             self.net = torch.load(self.config["train"]["model_path"])    
         self.net.cuda()

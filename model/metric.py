@@ -4,13 +4,16 @@ import numpy as np
 import matplotlib
 import matplotlib.pyplot as plt
 
-def lineCat(*args):
+def lineCat(mode, *args):
     lines = []
     bests = []
 
     for arg in args:
         lines.append(arg)
-        bests.append([np.argmax(np.array(arg)), max(arg)])
+        if mode == "loss":
+            bests.append([np.argmax(np.array(arg)), max(arg)])
+        else mode == "acc":
+            bests.append([np.argmax(np.array(arg)), max(arg)])
 
     return lines, bests
 
@@ -34,15 +37,23 @@ def draw(lines, bests, config, savePath, y_label, lineLabel):
         plt.text(bests[pointIdx][0], bests[pointIdx][1], "{}: {}; Epoch: {}".format(y_label, bests[pointIdx][1], bests[pointIdx][0]))
 
     # Words
-    plt.title(config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"]))
+    title = config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+"_"+y_label
+    if config["train_last"]:
+        title += "_trainLast"
+    plt.title(title)
     plt.xlabel("Epochs")
     plt.ylabel(y_label)
 
     # Save plot
-    plt.savefig(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+"_"+y_label+".png")
+    plt.savefig(savePath+title+".png")
 
 def saveInfo(config, acc, loss, epoch, savePath):
-    with open(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt", "w") as f:
+    if config["train_last"]:
+        saveFile = savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+"_trainLast"+".txt"
+    else:
+        saveFile = savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt"
+
+    with open(saveFile, "w") as f:
         f.write("Best performance on validation set:\n")
         f.write("\tAccuracy: {}\n".format(str(acc)))
         f.write("\tLoss: {}\n".format(str(loss)))
@@ -58,12 +69,18 @@ def writePred(names, preds, savePath):
             writer.writerow([name, pred])
 
 def readBest(config, savePath):
-    if not os.path.exists(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt"):
+    if config["train_last"]:
+        saveFile = savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+"_trainLast"+".txt"
+    else:
+        saveFile = savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt"
+    
+    if not os.path.exists(saveFile):
         return 0
-    with open(savePath+config["model"]+"_"+config["optimizer"]["name"]+str(config["optimizer"]["lr"])+"_batch"+str(config["batch_size"])+".txt", "r") as f:
+
+    with open(saveFile, "r") as f:
         for line in f.readlines():
             if line.startswith("\tAccuracy"):
-                return line.split()[1]
+                return float(line.split()[1])
 
 if __name__ == "__main__":
     lines = [[1, 2, 3, 4, 5], [1, 4, 9, 16, 25]]

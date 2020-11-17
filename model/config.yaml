@@ -1,8 +1,9 @@
 num_epochs: 100
-batch_size: 16
+batch_size: 12
 
-# vgg16(19)(_bn), resnet50(101, 152), Densenet121(169, 161), inception_v3 
-model: resnet34
+# vgg16(19)(_bn), resnet18(34, 50, 101, 152), densenet121(169, 161), inception_v3 
+model: resnet101 
+train_last: False
 
 train:
     data: ../dataset/split/train/*.dcm
@@ -30,10 +31,10 @@ test:
 
 optimizer:
     # SGD, Adam, Adadelta
-    name: Adam
-    lr: 0.0001
+    name: SGD
+    lr: 0.001
 
 scheduler:
     step_size: 20
-    gamma: 0.1          # become 0.9 times
+    gamma: 0.6       # become 0.5
 
