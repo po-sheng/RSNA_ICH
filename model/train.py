@@ -46,11 +46,11 @@ class Trainer:
 
         # Metric visualization
         # Loss
-        lines, bests = lineCat(self.trainL, self.valL)
+        lines, bests = lineCat("loss", self.trainL, self.valL)
         draw(lines, bests, self.config, "result/", "Loss", ["train", "val"])
 
         # Accuracy
-        lines, bests = lineCat(self.trainA, self.valA)
+        lines, bests = lineCat("acc", self.trainA, self.valA)
         draw(lines, bests, self.config, "result/", "Accuracy", ["train", "val"])
     
     def _run_epoch(self, epoch):
@@ -178,7 +178,7 @@ class Trainer:
 if __name__ == "__main__":
 
     # Set GPU
-    os.environ["CUDA_VISIBLE_DEVICES"] = "5, 6"    
+    os.environ["CUDA_VISIBLE_DEVICES"] = "3, 4"    
 
     torch.multiprocessing.set_sharing_strategy("file_system")
     torch.cuda.empty_cache()

@@ -1,6 +1,8 @@
 num_epochs: 100
 batch_size: 12
 
+triChanl: True
+
 # vgg16(19)(_bn), resnet18(34, 50, 101, 152), densenet121(169, 161), inception_v3 
 model: resnet101 
 train_last: False
@@ -31,8 +33,8 @@ test:
 
 optimizer:
     # SGD, Adam, Adadelta
-    name: SGD
-    lr: 0.001
+    name: Adam
+    lr: 0.0001
 
 scheduler:
     step_size: 20

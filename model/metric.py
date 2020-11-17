@@ -12,7 +12,7 @@ def lineCat(mode, *args):
         lines.append(arg)
         if mode == "loss":
             bests.append([np.argmax(np.array(arg)), max(arg)])
-        else mode == "acc":
+        elif mode == "acc":
             bests.append([np.argmax(np.array(arg)), max(arg)])
 
     return lines, bests

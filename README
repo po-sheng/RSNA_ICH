@@ -1,0 +1,29 @@
+
+Put the dataset in 'dataset/raw/' and run 'script/histogram' to split train and val set
+
+To train our model:
+    1. First move into 'model/' directory
+    2. Second modify the GPU setting in 'train.py'
+    3. Last, run our code by simple command 'python3 train.py'
+
+    You can see checkpoint in 'model/checkpoint/' and also some analysis base on result in 'model/result/'
+
+To predict using our model:
+    1. First move into 'model/' directory
+    2. Second modify the GPU setting in 'train.py'
+    3. Last, run our code by simple command 'python3 predict.py'
+
+    You will get the result csv file in 'model/'
+
+There are also some useful script in 'script/':
+    analysis.py:
+        Read .dcm image and read its value
+
+    refine_anls.py:
+        Read .dcm image and use window center and window width to normalize image
+
+    histogram.py:
+        Show the histogram of an image
+
+    train_test_split.py:
+        split the original dataset to train and val set 

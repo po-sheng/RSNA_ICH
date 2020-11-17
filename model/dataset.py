@@ -3,6 +3,7 @@ import glob
 import torch
 import pydicom
 import numpy as np
+import copy
 from scipy.ndimage import gaussian_filter
 from PIL import ImageStat as pilStat
 import torchvision.transforms as trns
@@ -67,10 +68,30 @@ def readImg_refine(Path):
 #     New_Img = np.zeros((rows, cols), np.uint8)
     Pixels = DCM_Img.pixel_array
 
+    
     img = Pixels * Rescale_Slope + Rescale_Intercept
-    img[img > Window_Max] = 255
-    img[img > Window_Min] = 0
-    img = 255 * (img - Window_Min) / (Window_Max - Window_Min)
+
+    ch1 = copy.deepcopy(img)
+    ch1[ch1 < 40] = 0
+    ch1[ch1 > 80] = 255
+    ch1 = 255 * (ch1 - 40) / (80 - 40)
+
+    ch2 = copy.deepcopy(img)
+    ch2[ch2 < 80] = 0
+    ch2[ch2 > 200] = 255
+    ch2 = 255 * (ch2 - 80) / (200 - 80)
+
+    ch3 = copy.deepcopy(img)
+    ch3[ch3 < 600] = 0
+    ch3[ch3 > 2000] = 255
+    ch3 = 255 * (ch3 - 600) / (2000 - 600)
+
+    img = np.stack((ch1, ch2, ch3), axis=-1)
+
+#     img = Pixels * Rescale_Slope + Rescale_Intercept
+#     img[img > Window_Max] = 255
+#     img[img > Window_Min] = 0
+#     img = 255 * (img - Window_Min) / (Window_Max - Window_Min)
 
 #     for i in range(0, rows):
 #         for j in range(0, cols):
@@ -123,9 +144,10 @@ def transform(img, phrase):
     return transform(img)
 
 def normalize(img):
+    trichanl = [0.5, 0.5, 0.5]
     norm = trns.Compose([
         trns.ToTensor(),
-        trns.Normalize(0.5, 0.5)
+        trns.Normalize(trichanl, trichanl)
     ])
 
     return norm(img)
@@ -148,14 +170,14 @@ class brainDataset(Dataset):
         return len(self.imgs)
 
     def __getitem__(self, idx):
-        img = readImg(self.imgs[idx])               # Output ndarray
+        img = readImg_refine(self.imgs[idx])               # Output ndarray
         
         if self.phrase == "test":
             lbl = self.imgs[idx]
         else:
             lbl = self.lbls[idx]
         
-        img = preProcess(img)
+#         img = preProcess(img)
         img = transform(img, self.phrase)           # Output PIL Image
         img = normalize(img)                        # Output Tensor
         

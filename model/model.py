@@ -47,28 +47,28 @@ def mod_model(class2idx, train_last, modelName, model):
     first = 0
     
     for name, module in model.named_modules():
-        if "conv" in name and first == 0:
-            first = 1
-            outC = module.out_channels
-            kSize = module.kernel_size
-            stride = module.stride
-            pad = module.padding
-            dilat = module.dilation
-            gr = module.groups
-            bias = module.bias
-            
-            if modelName.startswith("resnet"):
-                model.module.conv1 = nn.Conv2d(1, outC, kSize, stride, pad, dilat, gr, bias)
-            elif modelName.startswith("densenet"):
-                model.module.features.conv0 = nn.Conv2d(1, outC, kSize, stride, pad, dilat, gr, bias)
+#         if "conv" in name and first == 0:
+#             first = 1
+#             outC = module.out_channels
+#             kSize = module.kernel_size
+#             stride = module.stride
+#             pad = module.padding
+#             dilat = module.dilation
+#             gr = module.groups
+#             bias = module.bias
+#             
+#             if modelName.startswith("resnet"):
+#                 model.module.conv1 = nn.Conv2d(1, outC, kSize, stride, pad, dilat, gr, bias)
+#             elif modelName.startswith("densenet"):
+#                 model.module.features.conv0 = nn.Conv2d(1, outC, kSize, stride, pad, dilat, gr, bias)
 
-    if count == num_layers - 1:
-        inF = module.in_features
-        if modelName.startswith("resnet"):
-            model.fc = nn.Linear(in_features=inF, out_features=num_classes)
-        elif modelName.startswith("densenet"):
-            model.module.features.classifier = nn.Linear(in_features=inF, out_features=num_classes)
-    count += 1
+        if count == num_layers - 1:
+            inF = module.in_features
+            if modelName.startswith("resnet"):
+                model.fc = nn.Linear(in_features=inF, out_features=num_classes)
+            elif modelName.startswith("densenet"):
+                model.module.features.classifier = nn.Linear(in_features=inF, out_features=num_classes)
+        count += 1
 
     # Set last block require grad
     if train_last:
